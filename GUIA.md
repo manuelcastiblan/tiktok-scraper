@@ -108,6 +108,16 @@ vacío, renueva el token. Las cuentas NO necesitan este paso.
 
 El flujo tiene dos fases, pensadas para poder interrumpir y reanudar:
 
+```mermaid
+flowchart LR
+    A["1 · Editar CSVs<br/>de fuentes"] --> B["2 · descubrir"]
+    B --> C[("cola de<br/>videos")]
+    C --> D["3 · extraer"]
+    D --> F[("dataset<br/>tiktok_videos.csv")]
+    D -->|"interrupción<br/>Ctrl+C o error"| R["volver a correr extraer:<br/>salta lo ya procesado"]
+    R --> D
+```
+
 ```bash
 # Fase 1 — DESCUBRIR: llena la cola con los videos de cada fuente
 python -m tiktok_scraper.run descubrir --max-por-fuente 50

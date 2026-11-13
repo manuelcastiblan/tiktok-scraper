@@ -9,20 +9,23 @@ incremental y reanudable, delays aleatorios y reuso de cookies del navegador.
 
 ## Arquitectura
 
-```
-                 ┌────────────────────────── DESCUBRIMIENTO ──────────────────────────┐
-  data/cuentas.csv ──► discovery.descubrir_cuenta()   (yt-dlp, --flat-playlist)       │
-  data/hashtags.csv ─► discovery.descubrir_hashtag()  (TikTokApi + Playwright)        │
-                 └───────────────┬────────────────────────────────────────────────────┘
-                                 ▼
-                     data/cola_videos.csv   (URLs pendientes, deduplicadas por id)
-                                 │
-                 ┌───────────────▼──────────── EXTRACCIÓN ─────────────────────────────┐
-                 │  extract.extraer_video()  →  yt-dlp: metadata + subtítulos + .mp4    │
-                 │  transcribe.obtener_transcripcion() → subtítulos .vtt  ó  Whisper    │
-                 └───────────────┬────────────────────────────────────────────────────┘
-                                 ▼
-                   data/tiktok_videos.csv   (1 fila por video)  +  videos/  +  subtitulos/
+```mermaid
+flowchart TD
+    subgraph F1["FASE 1 · Descubrimiento"]
+        CU["data/cuentas.csv"] --> DC["descubrir_cuenta()<br/>yt-dlp --flat-playlist"]
+        HT["data/hashtags.csv"] --> DH["descubrir_hashtag()<br/>TikTokApi + Playwright · requiere msToken"]
+    end
+    subgraph F2["FASE 2 · Extracción"]
+        EX["extraer_video()<br/>yt-dlp: metadata + subtítulos + .mp4"] --> SUB{"¿hay subtítulos<br/>.vtt?"}
+        SUB -->|"sí"| VTT["parsear_vtt()"]
+        SUB -->|"no"| WH["faster-whisper<br/>audio → texto"]
+    end
+    DC --> COLA[("data/cola_videos.csv<br/>cola deduplicada por video_id")]
+    DH --> COLA
+    COLA --> EX
+    EX --> MP4["videos/*.mp4"]
+    VTT --> DS[("data/tiktok_videos.csv<br/>1 fila por video")]
+    WH --> DS
 ```
 
 Separar **descubrimiento** de **extracción** permite reanudar sin repetir: la
@@ -115,3 +118,7 @@ Esto conecta directo con tu pipeline de análisis de texto y de redes
   actors de Apify para TikTok (hashtags/cuentas/comentarios).
 - Si más adelante quieres **comentarios**, se agrega un módulo `comments.py`
   usando `TikTokApi.video(url).comments()`; el diseño ya lo permite.
+
+## Licencia
+
+[MIT](LICENSE) © 2026 Manuel Elkin Castiblanco Briceño
