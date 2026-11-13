@@ -1,0 +1,18 @@
+# Descarga y metadata (robusto para TikTok)
+yt-dlp>=2024.8.0
+
+# Búsqueda por hashtag (firma peticiones internas de TikTok vía Playwright)
+TikTokApi>=6.2.0
+playwright>=1.40.0
+
+# Transcripción del audio (CPU, ideal para Mac)
+faster-whisper>=1.0.0
+
+# Utilidades
+pandas>=2.0.0
+tqdm>=4.66.0
+
+# NOTA: además necesitas ffmpeg en el sistema (para transcripción y merge de video):
+#   brew install ffmpeg
+# Y los navegadores de Playwright (solo para hashtags):
+#   playwright install chromium

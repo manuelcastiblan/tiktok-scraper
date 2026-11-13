@@ -1,0 +1,13 @@
+# Datos extraídos — NO publicar (contenido de terceros y datos de investigación)
+videos/
+subtitulos/
+data/cola_videos.csv
+data/tiktok_videos.csv
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Sistema
+.DS_Store
