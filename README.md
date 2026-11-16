@@ -36,13 +36,22 @@ extracción salta cualquier `video_id` que ya esté en `tiktok_videos.csv`.
 **👉 Ver la [GUÍA completa](GUIA.md)**: instalación desde cero, configuración,
 obtención del msToken, flags, solución de problemas y uso responsable.
 
-Resumen mínimo:
+Resumen mínimo (macOS/Linux):
 
 ```bash
 python3.13 -m venv ~/venvs/tiktok
 ~/venvs/tiktok/bin/pip install -r requirements.txt curl_cffi
 brew install ffmpeg
 ~/venvs/tiktok/bin/playwright install webkit   # solo para hashtags
+```
+
+Windows (PowerShell):
+
+```powershell
+py -3.13 -m venv "$HOME\venvs\tiktok"
+& "$HOME\venvs\tiktok\Scripts\pip" install -r requirements.txt curl_cffi
+winget install Gyan.FFmpeg
+& "$HOME\venvs\tiktok\Scripts\playwright" install webkit   # solo para hashtags
 ```
 
 (`curl_cffi` permite a yt-dlp imitar un navegador real; sin él TikTok

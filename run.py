@@ -19,11 +19,20 @@ Flags útiles de `extraer` / `all`:
 """
 import argparse
 import random
+import sys
 import time
 
 from tqdm import tqdm
 
 from . import config, discovery, extract, storage
+
+# Consolas de Windows con codificación antigua (cp1252/cp850): degradar los
+# emojis a "?" en vez de morir con UnicodeEncodeError.
+try:
+    sys.stdout.reconfigure(errors="replace")
+    sys.stderr.reconfigure(errors="replace")
+except Exception:
+    pass
 
 
 def cmd_descubrir(args):

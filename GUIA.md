@@ -24,7 +24,7 @@ Todo queda en un CSV con una fila por video, listo para pandas.
 
 ## 2. Requisitos
 
-- macOS o Linux
+- macOS, Linux o Windows 10/11
 - **Python 3.11 a 3.13** (3.14 aún no tiene wheels para todas las dependencias)
 - **ffmpeg** (transcripción y unión de video+audio)
 - Firefox con sesión abierta en tiktok.com (recomendado: el scraper reusa sus
@@ -32,15 +32,20 @@ Todo queda en un CSV con una fila por video, listo para pandas.
 
 ## 3. Instalación desde cero
 
+El scraper se ejecuta como módulo Python, así que clona el repo con el nombre
+del paquete (`tiktok_scraper`, con guion bajo) y ejecuta siempre **desde la
+carpeta que lo contiene**.
+
+### macOS / Linux
+
 ```bash
-# 1. Clonar el repo
-git clone https://github.com/manuelcastiblan/tiktok-scraper.git
-cd tiktok-scraper
+# 1. Clonar el repo con el nombre del paquete
+git clone https://github.com/manuelcastiblan/tiktok-scraper.git tiktok_scraper
 
 # 2. Crear entorno virtual (fuera de carpetas sincronizadas con iCloud/Drive,
 #    ver §9 "Problemas conocidos")
 python3.13 -m venv ~/venvs/tiktok
-~/venvs/tiktok/bin/pip install -r requirements.txt curl_cffi
+~/venvs/tiktok/bin/pip install -r tiktok_scraper/requirements.txt curl_cffi
 
 # 3. ffmpeg
 brew install ffmpeg          # macOS
@@ -50,16 +55,32 @@ brew install ffmpeg          # macOS
 ~/venvs/tiktok/bin/playwright install webkit
 ```
 
+### Windows 10/11 (PowerShell)
+
+Instala antes [Python 3.13 de python.org](https://www.python.org/downloads/)
+(marcando "py launcher") y [Git](https://git-scm.com/download/win).
+
+```powershell
+# 1. Clonar el repo con el nombre del paquete
+git clone https://github.com/manuelcastiblan/tiktok-scraper.git tiktok_scraper
+
+# 2. Crear entorno virtual (fuera de carpetas sincronizadas con OneDrive,
+#    ver §9 "Problemas conocidos")
+py -3.13 -m venv "$HOME\venvs\tiktok"
+& "$HOME\venvs\tiktok\Scripts\pip" install -r tiktok_scraper\requirements.txt curl_cffi
+
+# 3. ffmpeg (abre una terminal NUEVA después, para que el PATH se refresque)
+winget install Gyan.FFmpeg
+
+# 4. Navegador de Playwright (SOLO si usarás hashtags)
+& "$HOME\venvs\tiktok\Scripts\playwright" install webkit
+```
+
+> **Equivalencia de rutas:** donde esta guía diga `~/venvs/tiktok/bin/python`,
+> en Windows usa `& "$HOME\venvs\tiktok\Scripts\python"`.
+
 > **Nota:** `curl_cffi` no es opcional. Sin él, yt-dlp no puede imitar un
 > navegador real y TikTok rechaza muchas peticiones.
-
-El scraper se ejecuta como módulo **desde la carpeta que contiene el paquete**
-(si clonaste como `tiktok-scraper`, renombra o ejecuta desde el padre con el
-nombre `tiktok_scraper`; lo más simple es clonar así):
-
-```bash
-git clone https://github.com/manuelcastiblan/tiktok-scraper.git tiktok_scraper
-```
 
 ## 4. Configurar las fuentes
 
@@ -92,13 +113,19 @@ verificado: no hay configuración de navegador que lo evite).
 Cómo obtenerlo:
 
 1. Abre https://www.tiktok.com en Firefox, logueado, y navega un poco.
-2. Herramientas del desarrollador (`⌘⌥I`) → pestaña **Almacenamiento** →
-   **Cookies** → `https://www.tiktok.com`.
+2. Herramientas del desarrollador (`⌘⌥I` en Mac, `F12` en Windows/Linux) →
+   pestaña **Almacenamiento** → **Cookies** → `https://www.tiktok.com`.
 3. Copia el valor de la cookie `msToken`.
 4. Expórtalo en la terminal antes de correr:
 
 ```bash
+# macOS / Linux
 export TT_MS_TOKEN="valor_copiado_aqui"
+```
+
+```powershell
+# Windows (PowerShell)
+$env:TT_MS_TOKEN = "valor_copiado_aqui"
 ```
 
 ⚠️ El token **expira** (horas o pocos días). Si los hashtags vuelven a dar
@@ -129,7 +156,8 @@ python -m tiktok_scraper.run extraer
 python -m tiktok_scraper.run all --max-por-fuente 50
 ```
 
-(usando siempre el python del venv: `~/venvs/tiktok/bin/python`)
+(usando siempre el python del venv: `~/venvs/tiktok/bin/python` en macOS/Linux,
+`& "$HOME\venvs\tiktok\Scripts\python"` en Windows)
 
 Flags de `extraer` / `all`:
 
@@ -185,7 +213,8 @@ Whisper no corre.
 | Una cuenta devuelve 0–1 videos sin error | Cuenta privada, inexistente o casi sin contenido | Verificar la cuenta en el navegador |
 | `impersonation` warning | Falta `curl_cffi` | `pip install curl_cffi` |
 | Error de ffmpeg al transcribir | ffmpeg no instalado | `brew install ffmpeg` |
-| El primer import tarda ~1 min | venv dentro de carpeta sincronizada con iCloud/Drive que desaloja archivos | Mover el venv fuera (p. ej. `~/venvs/`) o usar sufijo `.nosync`; no es un entorno roto, el segundo arranque es rápido |
+| El primer import tarda ~1 min | venv dentro de carpeta sincronizada (iCloud en Mac, OneDrive en Windows) que desaloja archivos a la nube | Mover el venv fuera (p. ej. `~/venvs/`); en Mac sirve el sufijo `.nosync`, en Windows marcar la carpeta como "Conservar siempre en este dispositivo". No es un entorno roto: el segundo arranque es rápido |
+| Emojis como `?` o `UnicodeEncodeError` (Windows) | Consola con codificación antigua (cp1252/cp850) | Usar Windows Terminal o PowerShell 7; el scraper además degrada los símbolos solo en vez de fallar |
 | Bloqueos / errores 403 repetidos | Demasiado volumen muy rápido | Subir `TT_ESPERA_MIN/MAX`, bajar volumen, considerar proxy |
 
 ## 10. Configuración avanzada (variables de entorno)
@@ -209,7 +238,15 @@ Todas opcionales; se anteponen al comando o se exportan:
 Ejemplo — recolección grande, sin videos, transcripción fina, más lenta y cuidadosa:
 
 ```bash
+# macOS / Linux
 TT_ESPERA_MIN=5 TT_ESPERA_MAX=12 python -m tiktok_scraper.run all \
+    --max-por-fuente 200 --sin-video --modelo-whisper medium
+```
+
+```powershell
+# Windows (PowerShell)
+$env:TT_ESPERA_MIN = "5"; $env:TT_ESPERA_MAX = "12"
+& "$HOME\venvs\tiktok\Scripts\python" -m tiktok_scraper.run all `
     --max-por-fuente 200 --sin-video --modelo-whisper medium
 ```
 

@@ -13,6 +13,6 @@ pandas>=2.0.0
 tqdm>=4.66.0
 
 # NOTA: además necesitas ffmpeg en el sistema (para transcripción y merge de video):
-#   brew install ffmpeg
+#   macOS: brew install ffmpeg | Windows: winget install Gyan.FFmpeg | Linux: apt install ffmpeg
 # Y los navegadores de Playwright (solo para hashtags):
-#   playwright install chromium
+#   playwright install webkit
