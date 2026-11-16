@@ -25,7 +25,9 @@ Todo queda en un CSV con una fila por video, listo para pandas.
 ## 2. Requisitos
 
 - macOS, Linux o Windows 10/11
-- **Python 3.11 a 3.13** (3.14 aún no tiene wheels para todas las dependencias)
+- **Python 3.11 a 3.14** (3.15 aún no: a nov 2026 falta el wheel de
+  `onnxruntime`, que necesita la transcripción; con `--sin-transcripcion`
+  podría correr, pero mejor quedarse en 3.13/3.14)
 - **ffmpeg** (transcripción y unión de video+audio)
 - Firefox con sesión abierta en tiktok.com (recomendado: el scraper reusa sus
   cookies para peticiones autenticadas)
@@ -203,6 +205,10 @@ deduplica por `video_id`.
 Todo corre en CPU. La primera vez que uses un modelo se descarga (~75 MB a
 ~1.5 GB según tamaño). Si el video trae subtítulos de TikTok, se usan esos y
 Whisper no corre.
+
+💡 En Macs con Apple Silicon y ctranslate2 ≥ 4.9 existe un backend
+experimental ~2x más rápido: pruébalo con `TT_WHISPER_DEVICE=mps` (si da
+problemas, vuelve al default `cpu`).
 
 ## 9. Problemas conocidos y soluciones
 

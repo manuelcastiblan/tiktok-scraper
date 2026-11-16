@@ -1,3 +1,5 @@
+# Python soportado: 3.11 a 3.14 (3.15 bloqueado por onnxruntime a nov 2026)
+
 # Descarga y metadata (robusto para TikTok)
 yt-dlp>=2024.8.0
 
@@ -7,6 +9,8 @@ playwright>=1.40.0
 
 # Transcripción del audio (CPU, ideal para Mac)
 faster-whisper>=1.0.0
+# PyAV 19 eliminó el argumento metadata_errors que faster-whisper <=1.2 aún usa
+av<19
 
 # Utilidades
 pandas>=2.0.0

@@ -14,7 +14,10 @@ venv_tiktok/bin/python -m tiktok_scraper.run <comando>
 
 - `venv_tiktok/` = Python 3.13 con todo instalado (yt-dlp, TikTokApi, playwright,
   faster-whisper, pandas, curl_cffi). **No usar** `venv/` ni `venv2/` (el primero
-  se cuelga al importar pandas) ni el Python del sistema (3.14, sin deps).
+  se cuelga al importar pandas) ni el Python del sistema (sin deps).
+- Compatibilidad verificada 2026-11-16: Python 3.11–3.14 OK (3.14 probado e2e;
+  requiere el pin `av<19` ya presente en requirements.txt — PyAV 19 rompe
+  faster-whisper). Python 3.15 NO: falta wheel de `onnxruntime`.
 - ffmpeg instalado vía Homebrew (lo necesitan Whisper y yt-dlp).
 - Playwright tiene chromium y webkit descargados.
 - `curl_cffi` es obligatorio: sin él yt-dlp no impersona navegador y TikTok
