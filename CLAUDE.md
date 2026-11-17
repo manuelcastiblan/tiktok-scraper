@@ -94,6 +94,48 @@ fuente_transcripcion, ruta_video, resolucion, fuente_tipo, fuente_valor, extraid
 4. TikTok cambia su web seguido: si la extracción falla masivamente, lo primero
    es actualizar yt-dlp (`venv_tiktok/bin/pip install -U yt-dlp`).
 5. Los prints y comentarios van en español con emojis (convención del usuario).
+6. **Impersonación obligatoria para cuentas**: sin `impersonate` explícito
+   (`config.IMPERSONAR`, default `chrome`) yt-dlp falla al listar perfiles con
+   `Unable to extract secondary user ID`. Tener `curl_cffi` instalado no basta.
+   Las opciones comunes de yt-dlp salen de `config.opciones_ytdlp_comunes()`.
+7. Los guardados vienen en `save_count` (no `favorite_count`).
+8. Publicaciones de fotos fallan con `No video formats found!`; no se registran
+   en resultados, así que reaparecen como pendientes en cada `extraer`.
+
+## Windows (probado 2026-11-16, Python 3.12, RTX 5080)
+
+- Clonar como `tiktok_scraper` y ejecutar desde la carpeta padre con
+  `& "$HOME\venvs\tiktok\Scripts\python" -m tiktok_scraper.run <comando>`.
+- Cuentas + extracción + Whisper verificados e2e. Funcionó sin ffmpeg (TikTok
+  entrega el mp4 ya unido y faster-whisper decodifica con PyAV), probado solo
+  con pocos videos.
+- **Hashtags en Windows: FUNCIONAN con sesión guardada** (2026-11-16, 40
+  videos por hashtag, sin msToken). Flujo: el usuario corre `sesion` una vez
+  (Chrome instalado, perfil `perfil_navegador/`); mientras la carpeta exista,
+  `descubrir_hashtag` usa `_descubrir_hashtag_pagina`: abre `/tag/<hashtag>`
+  con ese perfil (headless sirve) y lee las respuestas
+  `api/challenge/item_list` que pide la propia página al hacer scroll. No pasa
+  por TikTokApi. Default en Windows: `TIKTOKAPI_BROWSER=chromium`,
+  `TIKTOKAPI_CANAL=chrome` (el webkit de Playwright no carga el CAPTCHA:
+  `networkErrorText`; su chromium empaquetado no arrancó: `spawn UNKNOWN`).
+- Sin esa sesión, vía TikTokApi, NO funcionaron (TikTokApi 7.3.5) ni con un
+  msToken recién copiado: `EmptyResponseException` en webkit (headless y
+  visible) y chromium headless, también para trending y user. Causa: TikTok
+  muestra un CAPTCHA deslizante en `/tag/<hashtag>` a los navegadores de
+  Playwright (webkit, chromium y Chrome real) y `api/challenge/item_list`
+  responde 200 con cuerpo vacío. El msToken solo no lo evita; el CAPTCHA lo
+  debe resolver una persona: para eso está el comando `sesion`
+  (`discovery.abrir_sesion`), que abre el perfil persistente
+  `perfil_navegador/` en ventana visible; si la carpeta existe,
+  `descubrir_hashtag` la usa vía `browser_context_factory`. Claude NO debe
+  resolver el CAPTCHA: pedirle al usuario que corra `sesion`. Además `browser="chromium"` con los
+  args por defecto de TikTokApi falla con `spawn UNKNOWN`; pasa con
+  `override_browser_args=[]`. yt-dlp tampoco sirve: su extractor de
+  `/tag/` está marcado como roto.
+- GPU: `TT_WHISPER_DEVICE=cuda` + `pip install nvidia-cublas-cu12
+  nvidia-cudnn-cu12`. `transcribe._registrar_dlls_cuda()` añade las DLL al
+  PATH (`os.add_dll_directory` no le sirve a ctranslate2).
+- Varios perfiles de Firefox: fijar `TT_COOKIES_PERFIL`.
 
 ## Extensiones previstas
 

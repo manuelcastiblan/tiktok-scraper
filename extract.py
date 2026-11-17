@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import yt_dlp
+from tqdm import tqdm
 
 from . import config, transcribe
 
@@ -58,6 +59,7 @@ def _opciones_ytdlp(descargar_video: bool) -> dict:
     opts = {
         "quiet": True,
         "no_warnings": True,
+        "noprogress": True,  # la barra de yt-dlp pisa la de tqdm
         "skip_download": not descargar_video,
         "writesubtitles": True,
         "writeautomaticsub": True,
@@ -68,12 +70,21 @@ def _opciones_ytdlp(descargar_video: bool) -> dict:
             "subtitle": str(config.SUB_DIR / "%(id)s.%(ext)s"),
         },
         "retries": config.REINTENTOS,
-        "ignoreerrors": True,
+        # Sin "ignoreerrors": el motivo del fallo (p. ej. publicación de fotos,
+        # sin formatos de video) llega al except de extraer_video y se imprime.
         "noplaylist": True,
     }
-    if config.COOKIES_NAVEGADOR:
-        opts["cookiesfrombrowser"] = (config.COOKIES_NAVEGADOR,)
+    opts.update(config.opciones_ytdlp_comunes())
     return opts
+
+
+def _guardados(info: dict):
+    # yt-dlp expone los guardados de TikTok como save_count (favorite_count
+    # es el nombre de otros extractores; se deja como respaldo).
+    for clave in ("save_count", "favorite_count"):
+        if info.get(clave) is not None:
+            return info[clave]
+    return None
 
 
 def _ruta_video_local(info: dict, video_id: str) -> str:
@@ -100,7 +111,8 @@ def extraer_video(url: str, fuente_tipo: str = "", fuente_valor: str = "",
         with yt_dlp.YoutubeDL(_opciones_ytdlp(descargar_video)) as ydl:
             info = ydl.extract_info(url, download=True)
     except Exception as e:
-        print(f"   ❌ yt-dlp falló en {url}: {e}")
+        motivo = str(e).split("; please report")[0]
+        tqdm.write(f"   ❌ yt-dlp falló en {url}: {motivo}")
         return None
 
     if not info:
@@ -129,7 +141,7 @@ def extraer_video(url: str, fuente_tipo: str = "", fuente_valor: str = "",
         "likes": info.get("like_count"),
         "comentarios": info.get("comment_count"),
         "compartidos": info.get("repost_count"),
-        "guardados": info.get("favorite_count"),
+        "guardados": _guardados(info),
         "musica": _musica(info),
         "transcripcion": transcripcion,
         "fuente_transcripcion": fuente_trans,

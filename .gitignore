@@ -4,6 +4,9 @@ subtitulos/
 data/cola_videos.csv
 data/tiktok_videos.csv
 
+# Perfil del navegador con la sesión de TikTok — contiene cookies, NO publicar
+perfil_navegador/
+
 # Python
 __pycache__/
 *.pyc

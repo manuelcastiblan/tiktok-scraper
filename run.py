@@ -39,6 +39,10 @@ def cmd_descubrir(args):
     discovery.ejecutar_descubrimiento(maximo=args.max_por_fuente)
 
 
+def cmd_sesion(args):
+    discovery.abrir_sesion(args.hashtag)
+
+
 def cmd_extraer(args):
     config.crear_directorios()
     cola = storage.cargar_cola()
@@ -116,8 +120,16 @@ def main():
     pd_.add_argument("--max-por-fuente", type=int, default=config.MAX_POR_FUENTE)
     pd_.set_defaults(func=cmd_descubrir)
 
+    # sesion
+    ps = sub.add_parser(
+        "sesion", help="Abrir el navegador para resolver el CAPTCHA de TikTok "
+                       "y guardar la sesión (hashtags)")
+    ps.add_argument("--hashtag", type=str, default="colombia",
+                    help="Hashtag cuya página se abre (default: colombia)")
+    ps.set_defaults(func=cmd_sesion)
+
     # extraer
-    pe = sub.add_parser("extraer", help="Extraer videos pendientes de la cola")
+    pe =sub.add_parser("extraer", help="Extraer videos pendientes de la cola")
     pe.add_argument("--sin-video", action="store_true")
     pe.add_argument("--sin-transcripcion", action="store_true")
     pe.add_argument("--modelo-whisper", type=str, default=None)
