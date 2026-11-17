@@ -47,6 +47,7 @@ git clone https://github.com/manuelcastiblan/tiktok-scraper.git tiktok_scraper
 # 2. Crear entorno virtual (fuera de carpetas sincronizadas con iCloud/Drive,
 #    ver §9 "Problemas conocidos")
 python3.13 -m venv ~/venvs/tiktok
+~/venvs/tiktok/bin/pip install --upgrade pip
 ~/venvs/tiktok/bin/pip install -r tiktok_scraper/requirements.txt curl_cffi
 
 # 3. ffmpeg
@@ -69,6 +70,7 @@ git clone https://github.com/manuelcastiblan/tiktok-scraper.git tiktok_scraper
 # 2. Crear entorno virtual (fuera de carpetas sincronizadas con OneDrive,
 #    ver §9 "Problemas conocidos")
 py -3.13 -m venv "$HOME\venvs\tiktok"
+& "$HOME\venvs\tiktok\Scripts\pip" install --upgrade pip
 & "$HOME\venvs\tiktok\Scripts\pip" install -r tiktok_scraper\requirements.txt curl_cffi
 
 # 3. ffmpeg (abre una terminal NUEVA después, para que el PATH se refresque)
@@ -219,6 +221,7 @@ problemas, vuelve al default `cpu`).
 | Una cuenta devuelve 0–1 videos sin error | Cuenta privada, inexistente o casi sin contenido | Verificar la cuenta en el navegador |
 | `impersonation` warning | Falta `curl_cffi` | `pip install curl_cffi` |
 | Error de ffmpeg al transcribir | ffmpeg no instalado | `brew install ffmpeg` |
+| `pkg-config is required for building PyAV` al instalar | pip no encontró wheel de `av` para ese entorno e intenta compilarlo. Casi siempre: venv creado con Python ≤ 3.10, pip desactualizado, o Mac Apple Silicon con macOS 12/13 (el wheel arm64 pide macOS ≥ 14) | Verificar `python --version` (debe ser 3.11–3.14) y crear el venv con ese Python exacto; actualizar pip dentro del venv (`pip install -U pip`) ANTES de instalar; en macOS viejo, actualizar el sistema o `brew install pkg-config ffmpeg` para permitir la compilación |
 | El primer import tarda ~1 min | venv dentro de carpeta sincronizada (iCloud en Mac, OneDrive en Windows) que desaloja archivos a la nube | Mover el venv fuera (p. ej. `~/venvs/`); en Mac sirve el sufijo `.nosync`, en Windows marcar la carpeta como "Conservar siempre en este dispositivo". No es un entorno roto: el segundo arranque es rápido |
 | Emojis como `?` o `UnicodeEncodeError` (Windows) | Consola con codificación antigua (cp1252/cp850) | Usar Windows Terminal o PowerShell 7; el scraper además degrada los símbolos solo en vez de fallar |
 | Bloqueos / errores 403 repetidos | Demasiado volumen muy rápido | Subir `TT_ESPERA_MIN/MAX`, bajar volumen, considerar proxy |
