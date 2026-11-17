@@ -8,7 +8,10 @@ Estrategia en dos pasos:
 
 Devuelve (texto, fuente) donde fuente ∈ {"subtitulos", "whisper", "none"}.
 """
+import os
 import re
+import sys
+import sysconfig
 from pathlib import Path
 
 from . import config
@@ -50,9 +53,25 @@ def buscar_subtitulos(video_id: str, carpeta: Path) -> str:
 
 
 # ── Transcripción con faster-whisper ──────────────────────────────────
+def _registrar_dlls_cuda():
+    """
+    En Windows, ctranslate2 busca cublas/cudnn en el PATH. Si se instalaron con
+    pip (nvidia-cublas-cu12, nvidia-cudnn-cu12) quedan en site-packages/nvidia/
+    */bin, fuera del PATH: se agregan aquí. (os.add_dll_directory no basta.)
+    """
+    if sys.platform != "win32":
+        return
+    base = Path(sysconfig.get_paths()["purelib"]) / "nvidia"
+    dirs = [str(d) for d in base.glob("*/bin") if d.is_dir()]
+    if dirs:
+        os.environ["PATH"] = os.pathsep.join(dirs + [os.environ.get("PATH", "")])
+
+
 def _cargar_modelo():
     global _MODELO
     if _MODELO is None:
+        if config.WHISPER_DEVICE in ("cuda", "auto"):
+            _registrar_dlls_cuda()
         from faster_whisper import WhisperModel  # import perezoso
         print(f"🧠 Cargando modelo Whisper '{config.MODELO_WHISPER}' "
               f"({config.WHISPER_DEVICE}/{config.WHISPER_COMPUTE})...")

@@ -45,13 +45,15 @@ brew install ffmpeg
 ~/venvs/tiktok/bin/playwright install webkit   # solo para hashtags
 ```
 
-Windows (PowerShell):
+Windows (PowerShell) — clona con el nombre del paquete (`git clone <url>
+tiktok_scraper`) y ejecuta `python -m tiktok_scraper.run` desde la carpeta que
+lo contiene:
 
 ```powershell
 py -3.13 -m venv "$HOME\venvs\tiktok"
 & "$HOME\venvs\tiktok\Scripts\pip" install -r requirements.txt curl_cffi
 winget install Gyan.FFmpeg
-& "$HOME\venvs\tiktok\Scripts\playwright" install webkit   # solo para hashtags
+# Hashtags: usa el Chrome instalado; guarda la sesión una vez con `sesion`
 ```
 
 (`curl_cffi` permite a yt-dlp imitar un navegador real; sin él TikTok
@@ -79,13 +81,21 @@ visible). Se obtiene así:
 export TT_MS_TOKEN="pega_aqui_el_valor_de_la_cookie_msToken"
 ```
 
+Si aun con token los hashtags salen vacíos, TikTok está pidiendo CAPTCHA:
+corre `python -m tiktok_scraper.run sesion`, resuélvelo en la ventana que se
+abre y ciérrala; la sesión queda guardada (ver GUÍA §5). Con esa sesión los
+hashtags se leen de la página pública y el `msToken` deja de ser necesario.
+
 Otras variables útiles (todas opcionales, ver `config.py`):
 
 | Variable | Default | Qué hace |
 |---|---|---|
 | `TT_MAX_POR_FUENTE` | 100 | Videos por cuenta/hashtag |
 | `TT_COOKIES_NAVEGADOR` | firefox | Navegador del que yt-dlp toma cookies |
+| `TT_COOKIES_PERFIL` | — | Perfil del navegador (si tienes varios) |
+| `TT_IMPERSONAR` | chrome | Navegador que imita yt-dlp (necesario para listar cuentas) |
 | `TT_MODELO_WHISPER` | small | Modelo de transcripción |
+| `TT_WHISPER_DEVICE` | cpu | `cuda` para GPU NVIDIA (ver GUÍA §8) |
 | `TT_IDIOMA_WHISPER` | es | Idioma esperado del audio |
 | `TT_ESPERA_MIN/MAX` | 3 / 7 | Delay aleatorio entre videos (seg) |
 

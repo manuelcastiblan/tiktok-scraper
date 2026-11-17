@@ -76,8 +76,8 @@ py -3.13 -m venv "$HOME\venvs\tiktok"
 # 3. ffmpeg (abre una terminal NUEVA después, para que el PATH se refresque)
 winget install Gyan.FFmpeg
 
-# 4. Navegador de Playwright (SOLO si usarás hashtags)
-& "$HOME\venvs\tiktok\Scripts\playwright" install webkit
+# 4. Hashtags: en Windows se usa el Chrome instalado (no hay que descargar
+#    navegador). Guarda la sesión una vez con el comando `sesion` (ver §5).
 ```
 
 > **Equivalencia de rutas:** donde esta guía diga `~/venvs/tiktok/bin/python`,
@@ -131,6 +131,34 @@ export TT_MS_TOKEN="valor_copiado_aqui"
 # Windows (PowerShell)
 $env:TT_MS_TOKEN = "valor_copiado_aqui"
 ```
+
+### Si TikTok pide CAPTCHA: comando `sesion`
+
+A veces el token no basta: TikTok le muestra un CAPTCHA (puzle deslizante) al
+navegador automatizado y, hasta que alguien lo resuelve, la lista de videos
+llega vacía (`TikTok returned an empty response`). El scraper no resuelve
+CAPTCHAs; lo haces tú una vez:
+
+```bash
+python -m tiktok_scraper.run sesion
+```
+
+Se abre una ventana del navegador en la página de un hashtag. Resuelve el
+puzle si aparece (y entra a tu cuenta si quieres), comprueba que aparecen los
+videos y **cierra la ventana**. La sesión queda guardada en
+`perfil_navegador/`.
+
+Mientras esa carpeta exista, `descubrir` cambia de método para los hashtags:
+abre la página pública del hashtag con esa sesión (en segundo plano) y lee la
+lista de videos que carga la propia página al hacer scroll. Así **no hace
+falta `TT_MS_TOKEN`** ni depende de TikTokApi. Verificado en Windows
+(nov 2026): 40 videos por hashtag sin token. Si los hashtags vuelven a dar
+vacío, repite `sesion`.
+
+En **Windows** se usa el Chrome instalado (el webkit de Playwright no logra
+cargar el CAPTCHA allí: muestra `networkErrorText`). Se cambia con
+`TT_TIKTOKAPI_BROWSER` / `TT_TIKTOKAPI_CANAL` (§10). Esa carpeta contiene tus cookies: no la compartas ni la subas
+(ya está en `.gitignore`). Para dejar de usarla, bórrala.
 
 ⚠️ El token **expira** (horas o pocos días). Si los hashtags vuelven a dar
 vacío, renueva el token. Las cuentas NO necesitan este paso.
@@ -204,9 +232,21 @@ deduplica por `video_id`.
 | `small` (default) | ~1 min/video | Buena | Recolección general |
 | `medium` | ~3 min/video | Muy buena | Análisis de discurso fino |
 
-Todo corre en CPU. La primera vez que uses un modelo se descarga (~75 MB a
+Por defecto todo corre en CPU (tiempos de la tabla). La primera vez que uses un modelo se descarga (~75 MB a
 ~1.5 GB según tamaño). Si el video trae subtítulos de TikTok, se usan esos y
 Whisper no corre.
+
+💡 **GPU NVIDIA (Windows/Linux):** instala las librerías CUDA en el venv y
+activa `cuda`; el scraper las encuentra solo y usa `float16`:
+
+```powershell
+& "$HOME\venvs\tiktok\Scripts\pip" install nvidia-cublas-cu12 nvidia-cudnn-cu12
+$env:TT_WHISPER_DEVICE = "cuda"
+```
+
+Con GPU conviene subir de modelo: en una RTX 5080 (nov 2026), un video de 76 s
+tomó ~4 s con `medium` o `large-v3`, frente a ~16 s con `small` en CPU. Si
+aparece `Library cublas64_12.dll is not found`, faltan esos dos paquetes.
 
 💡 En Macs con Apple Silicon y ctranslate2 ≥ 4.9 existe un backend
 experimental ~2x más rápido: pruébalo con `TT_WHISPER_DEVICE=mps` (si da
@@ -217,7 +257,11 @@ problemas, vuelve al default `cpu`).
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | Fallan muchas extracciones de golpe | TikTok cambió su web | `pip install -U yt-dlp` (primera medida SIEMPRE) |
-| Hashtags devuelven 0 videos | msToken ausente o expirado | Renovar `TT_MS_TOKEN` (§5) |
+| Hashtags devuelven 0 videos | msToken ausente o expirado, o TikTok pide CAPTCHA | Renovar `TT_MS_TOKEN`; si sigue vacío, correr `sesion` y resolver el CAPTCHA (§5) |
+| Cuentas con `Unable to extract secondary user ID` | TikTok sirve una página-desafío si yt-dlp no imita un navegador; o la cuenta no existe / es privada | Comprobar que `curl_cffi` está instalado y que `TT_IMPERSONAR` no está vacío (default `chrome`); verificar la cuenta en el navegador |
+| `❌ yt-dlp falló … No video formats found!` en un video | Normalmente es una publicación de fotos (carrusel), no un video | Ninguna: se omite. Seguirá apareciendo como pendiente en cada corrida |
+| Las cookies no parecen surtir efecto | Hay varios perfiles de Firefox y yt-dlp toma el usado más recientemente | Fijar `TT_COOKIES_PERFIL` con la carpeta del perfil logueado (ver `about:profiles`) |
+| `Library cublas64_12.dll is not found` | `TT_WHISPER_DEVICE=cuda` sin las librerías CUDA | `pip install nvidia-cublas-cu12 nvidia-cudnn-cu12` (§8) |
 | Una cuenta devuelve 0–1 videos sin error | Cuenta privada, inexistente o casi sin contenido | Verificar la cuenta en el navegador |
 | `impersonation` warning | Falta `curl_cffi` | `pip install curl_cffi` |
 | Error de ffmpeg al transcribir | ffmpeg no instalado | `brew install ffmpeg` |
@@ -235,6 +279,9 @@ Todas opcionales; se anteponen al comando o se exportan:
 | `TT_MAX_POR_FUENTE` | 100 | Videos por cuenta/hashtag |
 | `TT_MS_TOKEN` | — | Token para hashtags (§5) |
 | `TT_COOKIES_NAVEGADOR` | firefox | De qué navegador toma cookies yt-dlp (`firefox`/`chrome`/`safari`/vacío) |
+| `TT_COOKIES_PERFIL` | — | Perfil del navegador; en Firefox, el nombre de la carpeta del perfil (p. ej. `abcd1234.default-release`) o su ruta. Vacío = el más reciente |
+| `TT_IMPERSONAR` | chrome | Navegador que imita yt-dlp vía `curl_cffi`; sin esto las cuentas devuelven 0 videos. Vacío = desactivar |
+| `TT_WHISPER_DEVICE` / `TT_WHISPER_COMPUTE` | cpu / int8 | `cuda` para GPU NVIDIA (entonces el cómputo por defecto es `float16`) |
 | `TT_DESCARGAR_VIDEO` | 1 | `0` = no bajar `.mp4` |
 | `TT_TRANSCRIBIR` | 1 | `0` = no transcribir |
 | `TT_MODELO_WHISPER` | small | Modelo de Whisper |
@@ -242,6 +289,9 @@ Todas opcionales; se anteponen al comando o se exportan:
 | `TT_ESPERA_MIN` / `TT_ESPERA_MAX` | 3 / 7 | Delay aleatorio entre videos (seg) |
 | `TT_GUARDAR_CADA` | 5 | Frecuencia del guardado incremental |
 | `TT_HEADLESS` | 1 | `0` = navegador visible en hashtags |
+| `TT_TIKTOKAPI_BROWSER` | webkit (Windows: chromium) | Motor de Playwright para hashtags |
+| `TT_TIKTOKAPI_CANAL` | — (Windows: chrome) | Navegador instalado a usar con `chromium`: `chrome` o `msedge` |
+| `TT_PERFIL_DIR` | ./perfil_navegador | Perfil persistente que crea `sesion` (§5) |
 | `TT_DATA_DIR`, `TT_VIDEO_DIR`, `TT_SUB_DIR` | ./data, ./videos, ./subtitulos | Rutas de salida |
 
 Ejemplo — recolección grande, sin videos, transcripción fina, más lenta y cuidadosa:
