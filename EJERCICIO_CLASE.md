@@ -13,7 +13,7 @@ Requisitos: Python 3.11 a 3.14 y git. No hace falta cuenta de TikTok ni ffmpeg.
 ```powershell
 git clone https://github.com/manuelcastiblan/tiktok-scraper tiktok_scraper
 python -m venv venv_tiktok
-venv_tiktok\Scripts\pip install -r tiktok_scraper\requirements.txt curl_cffi
+venv_tiktok\Scripts\pip install -r tiktok_scraper\requirements.txt
 ```
 
 **Mac / Linux (Terminal)**
@@ -21,7 +21,7 @@ venv_tiktok\Scripts\pip install -r tiktok_scraper\requirements.txt curl_cffi
 ```bash
 git clone https://github.com/manuelcastiblan/tiktok-scraper tiktok_scraper
 python3 -m venv venv_tiktok
-venv_tiktok/bin/pip install -r tiktok_scraper/requirements.txt curl_cffi
+venv_tiktok/bin/pip install -r tiktok_scraper/requirements.txt
 ```
 
 La carpeta debe llamarse `tiktok_scraper` (con guion bajo) y los comandos se
@@ -41,12 +41,8 @@ sergiofajardov
 claudialopezcl
 ```
 
-Y deja `tiktok_scraper/data/hashtags.csv` solo con el encabezado (los hashtags
-exigen resolver un CAPTCHA y no entran en este ejercicio):
-
-```
-hashtag
-```
+`tiktok_scraper/data/hashtags.csv` ya viene vacío: déjalo así (los hashtags
+exigen resolver un CAPTCHA y no entran en este ejercicio).
 
 ## 3. Correr el scraper
 

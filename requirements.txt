@@ -2,6 +2,8 @@
 
 # Descarga y metadata (robusto para TikTok)
 yt-dlp>=2024.8.0
+# Obligatorio: sin él yt-dlp no puede imitar a Chrome y las cuentas dan 0 videos
+curl_cffi
 
 # Búsqueda por hashtag (firma peticiones internas de TikTok vía Playwright)
 TikTokApi>=6.2.0
