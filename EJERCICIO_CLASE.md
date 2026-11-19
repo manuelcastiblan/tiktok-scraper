@@ -8,38 +8,72 @@ La corrida tarda entre 6 y 12 minutos según el computador.
 
 Requisitos: Python 3.11 a 3.14 y git. No hace falta cuenta de TikTok ni ffmpeg.
 
+Los comandos se corren uno a la vez, en orden. En Windows van en PowerShell;
+en Mac, en la app Terminal.
+
 **Windows (PowerShell)**
 
 ```powershell
+mkdir $HOME\Documents\clase_tiktok; cd $HOME\Documents\clase_tiktok
+```
+
+```powershell
 git clone https://github.com/manuelcastiblan/tiktok-scraper tiktok_scraper
+```
+
+```powershell
 python -m venv venv_tiktok
+```
+
+```powershell
 venv_tiktok\Scripts\pip install -r tiktok_scraper\requirements.txt
 ```
+
+Si `python` no se reconoce, usa `py -m venv venv_tiktok`.
 
 **Mac / Linux (Terminal)**
 
 ```bash
+mkdir -p ~/Documents/clase_tiktok && cd ~/Documents/clase_tiktok
+```
+
+```bash
 git clone https://github.com/manuelcastiblan/tiktok-scraper tiktok_scraper
+```
+
+```bash
 python3 -m venv venv_tiktok
+```
+
+```bash
 venv_tiktok/bin/pip install -r tiktok_scraper/requirements.txt
 ```
 
+En Mac, si `git` o `python3` no están, el sistema ofrece instalar las
+herramientas de desarrollo: acepta y repite el comando. Si `python3 --version`
+muestra una versión menor que 3.11, instala una más nueva desde python.org.
+
 La carpeta debe llamarse `tiktok_scraper` (con guion bajo) y los comandos se
-corren desde la carpeta que la contiene, no desde adentro.
+corren desde `clase_tiktok`, la carpeta que la contiene, no desde adentro.
 
 ## 2. Definir las fuentes
 
-Reemplaza el contenido de `tiktok_scraper/data/cuentas.csv` por:
+Este comando escribe las seis cuentas en `tiktok_scraper/data/cuentas.csv`.
 
+**Windows (PowerShell)**
+
+```powershell
+Set-Content -Encoding utf8 tiktok_scraper\data\cuentas.csv "usuario`ncarlosfgalan`nficogutierrez`npalomavalencial`njotapehernandez`nsergiofajardov`nclaudialopezcl"
 ```
-usuario
-carlosfgalan
-ficogutierrez
-palomavalencial
-jotapehernandez
-sergiofajardov
-claudialopezcl
+
+**Mac / Linux**
+
+```bash
+printf 'usuario\ncarlosfgalan\nficogutierrez\npalomavalencial\njotapehernandez\nsergiofajardov\nclaudialopezcl\n' > tiktok_scraper/data/cuentas.csv
 ```
+
+También se puede editar el archivo a mano: una cuenta por línea, sin `@`,
+debajo del encabezado `usuario`.
 
 `tiktok_scraper/data/hashtags.csv` ya viene vacío: déjalo así (los hashtags
 exigen resolver un CAPTCHA y no entran en este ejercicio).
@@ -73,6 +107,20 @@ Si se corta, se vuelve a correr el mismo comando: retoma donde iba.
 Avisos normales: `No video formats found!` es una publicación de fotos (no
 tiene video y se salta); algunas transcripciones quedan vacías porque el video
 solo tiene música.
+
+Para ver un resumen por cuenta al terminar:
+
+**Windows (PowerShell)**
+
+```powershell
+venv_tiktok\Scripts\python -c "import pandas as pd; df = pd.read_csv('tiktok_scraper/data/tiktok_videos.csv'); print(df.groupby('autor')[['vistas','likes','duracion_seg']].mean().round(0))"
+```
+
+**Mac / Linux**
+
+```bash
+venv_tiktok/bin/python -c "import pandas as pd; df = pd.read_csv('tiktok_scraper/data/tiktok_videos.csv'); print(df.groupby('autor')[['vistas','likes','duracion_seg']].mean().round(0))"
+```
 
 ## 4. Preguntas
 
